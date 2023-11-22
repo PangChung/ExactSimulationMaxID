@@ -1,2 +1,2 @@
 # ExactSimulationMaxID
- Code for the paper "Exact Simulation of max-infinitely divisible processes
+ Code for the paper "Exact Simulation of max-infinitely divisible processes"
