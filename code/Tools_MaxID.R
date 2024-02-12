@@ -112,7 +112,7 @@ rF <- function(N, parR,type="GS"){
   }
 }
 
-# dependence function for Gaussian processes
+# covariance function for Gaussian processes
 #parGauss = list(lambda,lambda.t,a,theta,nu,type),reg,reg.t
 rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
   type = parGauss$type; lambda = parGauss$lambda; lambda.t = parGauss$lambda.t
@@ -157,15 +157,6 @@ rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
   }
 }
 
-#parGauss is a list
-# fun2int <- function(r,xi,h,parR,parGauss,reg=NULL,reg.t=NULL){
-#   xi.list <- rep(list(xi),length(r))
-#   r.list <- as.list(r)
-#   sigma.list <- mapply(rho.func,r=r,
-#                        MoreArgs = list(h=h,parGauss=parGauss,reg=reg,reg.t=reg.t,mat=T),SIMPLIFY = F)
-#   logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma)[1])},xi=xi.list,r=r.list,sigma=sigma.list),0) )
-#   return( exp( logpmv + dF(r,parR,log=TRUE) ) )
-# }
 
 #################################################################################################################################################
 ### function V and its derivatives

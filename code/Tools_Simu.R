@@ -35,21 +35,20 @@ grad_logends<-function(x,y,parR){
   return(val)
 }
 
-ars.y <- function(y,idx,parR,coord){
+ars.y <- function(y,idx,parR,Sigma){
   init <- seq(-4,4,length=6)
   log.r <- ars(n=1,logends,grad_logends,x=init,y=y,m=length(init),parR=parR)
-  Y=rcondmv(y=y,r=exp(log.r),idx=idx,coord=coord,parR=parR)
+  Y=rcondmv(y=y,r=exp(log.r),idx=idx,Sigma=Sigma,parR=parR)
   return(Y)
 }
 
 #ars(1,logends,grad_logends,x=c(-3,-1,0,1,3,4),y=0.5,parR=c(1,1))
 
 #### some extra functions to use for our specific model ####
-rcondmv <- function(y,r,idx=1,coord,parR,ncores=1,type="GS"){
-  D <- nrow(coord)
+rcondmv <- function(y,r,idx=1,Sigma,parR,ncores=1,type="GS"){
+  D <- nrow(Sigma)
   Z <- rep(NA,D)
   Z[idx] <- y
-   Sigma=coord
    A <- Sigma[-idx,-idx]-Sigma[-idx,idx]%*%t(Sigma[-idx,idx])/Sigma[idx,idx]
    A <- t(chol(A))
    if(type=="GS"){
@@ -62,7 +61,7 @@ rcondmv <- function(y,r,idx=1,coord,parR,ncores=1,type="GS"){
 
 ### mcmc alogrithm ###
 
-mcmc.y <- function(y,idx,parR,coord,sd=1,N=10^3,type="GS"){
+mcmc.y <- function(y,idx,parR,Sigma,sd=1,N=10^3,type="GS"){
   if(type=="GS"){
   log.r = rnorm(1,mean=log(y),sd=sd) # proposal for R (hope this would be fine)
   logaccp = NULL
@@ -101,30 +100,30 @@ mcmc.y <- function(y,idx,parR,coord,sd=1,N=10^3,type="GS"){
     } 
     r=log.r[count] }
   ## simulate X1 | X2=y, R
-  Y=rcondmv(y=y,r=r,idx=idx,coord=coord,parR=parR,type=type)
+  Y=rcondmv(y=y,r=r,idx=idx,Sigma=Sigma,parR=parR,type=type)
   return(Y)
 }
 
 
 #### Algorithm to sample using MH algorithm or adaptive rejection sampling ####
-mh <- function(n=1,ars=F,parR,coord,N=10^3,type="GS"){
+mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
   counter = 1
   z = rexp(1)
   y = qG(exp(-z),parR = parR,type=type)
-  D = nrow(coord)
+  D = nrow(Sigma)
   if(!ars){
-    Y = mcmc.y(y = y,idx=1,parR=parR,coord=coord,sd=0.01,N=N,type = type)
+    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.01,N=N,type = type)
   }else{
-    Y = ars.y(y = y,idx=1,parR=parR,coord=coord)
+    Y = ars.y(y = y,idx=1,parR=parR,Sigma=Sigma)
   }
   for(j in 2:D){
     z = rexp(1)
     y = qG(exp(-z),parR = parR,type = type)
     while(y > Y[j]){
       if(!ars){
-        Y.new = mcmc.y(y = y,idx=j,parR=parR,coord=coord,sd=0.01,N=N,type=type)
+        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=0.01,N=N,type=type)
       }else{
-        Y.new = ars.y(y = y,idx=j,parR=parR,coord=coord)
+        Y.new = ars.y(y = y,idx=j,parR=parR,Sigma=Sigma)
       }
       if(!any(Y.new[1:(j-1)] >= Y[1:(j-1)])){
         Y = pmax(Y.new,Y)
@@ -135,7 +134,7 @@ mh <- function(n=1,ars=F,parR,coord,N=10^3,type="GS"){
       counter = counter + 1
     }
   }
-  return(list(Y=Y,counter=counter))
+  return(Y)
 }
 
 
@@ -155,12 +154,12 @@ emp.pair <- function(k,pair,XDAT,pars,reg,reg.t){# index of the pairs
   v = rep(NA,length(z))
   v[!A1] <- pmin(d,pmax(1,-z[!A1]*log(p[!A1])))
   sd <- 2*sqrt((1-p)/n*z^2/p)
-  if(d==2){h=coord[pair[k,1],pair[k,2]]}else{h=coord[pair[k,],pair[k,]]}
+  if(d==2){h=Sigma[pair[k,1],pair[k,2]]}else{h=Sigma[pair[k,],pair[k,]]}
   theta <- Theta.dimD(z=z,h=h,parR = pars$parR,parGauss = pars$parGauss,reg = reg[pair[k,],],reg.t=reg.t)
   return(cbind(v,sd,theta))
 }
 
 
-message("Input the covariance matrix as coord")
+message("Input the covariance matrix as Sigma")
 
 
