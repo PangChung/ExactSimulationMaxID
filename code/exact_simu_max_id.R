@@ -1,4 +1,4 @@
-setwd("code")
+setwd("code/")
 source("Tools_MaxID.R");source("Tools_Simu.R")
 library(parallel)
 library(evd)
