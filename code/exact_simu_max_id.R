@@ -1,4 +1,4 @@
-setwd("~/Documents/R/exact_simu_max_id_project/code")
+setwd("code")
 source("Tools_MaxID.R");source("Tools_Simu.R")
 library(parallel)
 library(evd)

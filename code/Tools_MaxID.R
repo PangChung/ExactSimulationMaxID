@@ -28,7 +28,6 @@ upperF_GS <- function(x,parR,log=FALSE){
   logval <- c()
   logval[is.na(x)] <- NA
   ind <- x>0 & !is.na(x)
-  browser()
   if(beta==0){
     logval[ind] <- -alpha*log(x[ind])
   } else{

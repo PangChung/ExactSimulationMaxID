@@ -3,7 +3,7 @@ for(arg in args) {
   eval(parse(text = arg))
 }
 
-setwd("~/project/exact_simu_max_id_project/")
+setwd("code/")
 source("Tools_MaxID.R");source("Tools_Simu.R")
 ncores=40
 library(parallel)
