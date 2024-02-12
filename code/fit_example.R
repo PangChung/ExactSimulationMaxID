@@ -5,7 +5,7 @@ for(arg in args) {
 
 setwd("code/")
 source("Tools_MaxID.R");source("Tools_Simu.R")
-ncores=40
+ncores=detectCores()
 library(parallel)
 library(mvtnorm)
 library(evd)
@@ -17,6 +17,7 @@ n = 50
 LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
 parR = c(1,1) #alpha, beta
 parGauss = c(1,1) #nu, lambdas
+pars=get.par(c(parR,parGauss),type=1)
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 cutoff <- 3/(7+1) # six order neighbors
 coord = as.matrix(expand.grid(x.coord,y.coord))
@@ -25,9 +26,9 @@ Sigma = exp(-as.matrix(dist(coord))/0.5)
 reg=cbind(1,2*pnorm(coord[,1],0.5,0.25)-1)
 reg.t = 0
 
-u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=coord,parR=pars$parR,parGauss = pars$parGauss,reg=reg,reg.t=reg.t),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=pars$parR)
+u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=pars$parR,parGauss = pars$parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=pars$parR)
 
-u.mh <- apply(mcmapply(mh,n=1:n,SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(reg=reg,reg.t=reg.t,pars=pars)),1,pG,parR=pars$parR)
+u.mh <- apply(mcmapply(mh,n=1:n,SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=pars$parR)
 
 u.ars <- apply(mcmapply(mh,n=1:n,MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=pars$parR)
 
