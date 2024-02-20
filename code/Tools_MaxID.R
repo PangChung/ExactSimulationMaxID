@@ -351,15 +351,15 @@ Theta.dimD <- function(z,h,parR,parGauss,reg=NULL,reg.t=NULL,type="GS"){
 #################################################################################################################################################
 pG <- function(x,parR,log=FALSE,type="GS"){
   g <- function(xi){
-    if (xi<=0 && type=="GS"){return(Inf)}
+    if (xi<=0 && type=="GS"){return(0)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,parR){
       if(type=="GS"){
-      if (xi<=0){return(Inf)}
-      logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r))) )
-      return( exp( logp + dF_GS(r,parR,log=TRUE) ) )
+        if (xi<=0){return(0)}
+            logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r))) )
+        return( exp( logp + dF_GS(r,parR,log=TRUE) ) )
       }else{
-      logp <- log( 1-pnorm(xi-r))+dF_GL(r,parR,log=TRUE)
+            logp <- log( 1-pnorm(xi-r))+dF_GL(r,parR,log=TRUE)
       return(exp(logp))
       }
     }

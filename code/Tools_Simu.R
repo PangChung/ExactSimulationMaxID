@@ -60,7 +60,6 @@ rcondmv <- function(y,r,idx=1,Sigma,parR,ncores=1,type="GS"){
 }
 
 ### mcmc alogrithm ###
-
 mcmc.y <- function(y,idx,parR,Sigma,sd=1,N=10^3,type="GS"){
   if(type=="GS"){
   log.r = rnorm(1,mean=log(y),sd=sd) # proposal for R (hope this would be fine)
@@ -83,7 +82,7 @@ mcmc.y <- function(y,idx,parR,Sigma,sd=1,N=10^3,type="GS"){
     #     plot(1:(count-1),exp(logaccp),xlab="Iterations",ylab="log accp",main="",pch=16,type="l")
     #   }
   } 
-  r = exp(log.r[count]) }else{
+  r = exp(log.r[count])}else{
     log.r = rnorm(1,mean=y,sd=sd) # proposal for R (hope this would be fine)
     logaccp = NULL
     ### algos to simulate the RW
@@ -111,6 +110,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
   z = rexp(1)
   y = qG(exp(-z),parR = parR,type=type)
   D = nrow(Sigma)
+  browser()
   if(!ars){
     Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.01,N=N,type = type)
   }else{
@@ -130,7 +130,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
       }
       e = rexp(1)
       z = z + e
-      y = qG(exp(-z),parR =parR,type = type)
+      y = qG(max(exp(-z),1e-5),parR=parR,type = type)
       counter = counter + 1
     }
   }
