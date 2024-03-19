@@ -30,7 +30,7 @@ qG(0.0001,parR)
 mh(1,ars=F,parR,Sigma)
 
 
-mh(100,ars=T,parR=parR,Sigma=Sigma)
+mh(100,ars=F,parR=parR,Sigma=Sigma)
 
 u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
