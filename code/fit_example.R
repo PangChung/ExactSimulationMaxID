@@ -12,10 +12,10 @@ ncores=detectCores()
 d = 10
 D = d^2 # number of sites in the space
 N = 100   # number of iterations when sample Y 
-n = 100
+n = 500
 LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
-parR = c(1,2)
-parGauss = c(1,1) #nu, lambdas
+parR = c(1,0)
+parGauss = c(1,10) 
 pars=get.par(c(parR,parGauss),type=1)
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 cutoff <- 3/(7+1) # six order neighbors
@@ -30,11 +30,12 @@ qG(0.0001,parR)
 mh(1,ars=F,parR,Sigma)
 
 
-mh(100,ars=F,parR=parR,Sigma=Sigma)
+
+data = mh(n,ars=F,parR=parR,Sigma=Sigma)
 
 u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
-u.mh <- apply(mcmapply(mh,n=1:n,SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
+u.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
 
 u.ars <- apply(mcmapply(mh,n=1:n,MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 mh(100,ars=T,parR,Sigma)
@@ -55,14 +56,6 @@ init[1:2] <- log(init[1:2])
 # fit.approx <- fit.pw.parallel(init=init,datU = u.approx,coord=coord,reg=reg,reg.t=NULL,cutoff=cutoff,proppairs= 1,fixed=fixed,optim =T, hessian=F,sandwich=F,eps = 10^(-2), print.par.file=NULL,ncores=ncores,fit.load=F, fit.save=F,fit.file=NULL)
 
 # save.image(paste0("fit_simu_examples/fit_simu_",index,".RData"))
-
-x = seq(0.000001,10,0.01)
-pG(x,parR)
-
-
-
-
-
 
 
 

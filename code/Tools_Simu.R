@@ -209,7 +209,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
         idx.new = idx.new & !idx.finish
         idx.old = !idx.new & !idx.finish
         count = count + 1
-        print(paste0(c(count,sum(idx.finish),n),collapse = "/"))
+        # print(paste0(c(count,sum(idx.finish),n),collapse = "/"))
     }
     return(Y)
 }

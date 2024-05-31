@@ -119,7 +119,7 @@ rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
   a = parGauss$a; theta = parGauss$theta; nu = parGauss$nu;
   if(type==1){
     rho.temp = h^2/lambda^2
-    rho.r = exp(-sqrt(rho.temp))
+    rho.r = nu*exp(-sqrt(rho.temp))
     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
     else{return(rho.r)}
   }
@@ -305,6 +305,7 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
         }
       }
       sigma.list <- mapply(corr,r=r,SIMPLIFY = F)
+      browser()
       temp = function(xi,r,sigma){ 
         oldSeed <- get(".Random.seed", mode="numeric", envir=globalenv())
         set.seed(19873436)
@@ -492,12 +493,12 @@ rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, nco
 # including one spatial covariate and one temporal covariate
 get.par <- function(par,type=4,mtype="GS"){
   if(mtype=="GS"){
-  parR <- exp(par[1:2])
+    parR <- exp(par[1:2])
   }else{
     parR <- par[1:4];parR[2:4]<-exp(parR[2:4])
   }
   parGauss<-list(type=type,lambda=NULL,lambda.t=NULL,a=NULL,theta=NULL,nu=NULL)
-  if(type==1){parGauss$lambda=exp(par[3])}
+  if(type==1){parGauss$lambda=exp(par[3]);parGauss$nu=par[4]}
   if(type==2){parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
   if(type==3){parGauss$lambda=exp(par[3]);parGauss$a=exp(par[4]);parGauss$theta=par[5]}
   if(type==4){parGauss$nu=par[6];parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
