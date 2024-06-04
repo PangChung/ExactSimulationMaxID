@@ -148,7 +148,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
             if(ars){
                 val = lapply(idx.j,function(i){ars.y(y = y[i],idx=j,parR=parR,Sigma=Sigma)})
             } else {
-                val = lapply(idx.j,function(i){mcmc.y(y = y[i],idx=j,parR=parR,Sigma=Sigma,sd=0.01,N=N,type = type)})
+                val = lapply(idx.j,function(i){mcmc.y(y = y[i],idx=j,parR=parR,Sigma=Sigma,sd=1,N=N,type = type)})
             }
             return(do.call(rbind,val))
         }
