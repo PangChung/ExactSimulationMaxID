@@ -13,7 +13,7 @@ D = d^2 # number of sites in the space
 N = 100   # number of iterations when sample Y 
 n = 500
 LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
-parR = c(1,0)
+parR = c(2,1)
 parGauss = c(1,10) 
 pars=get.par(c(parR,parGauss),type=1)
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
@@ -30,14 +30,11 @@ mh(1,ars=F,parR,Sigma)
 
 
 
-data = mh(n,ars=F,parR=parR,Sigma=Sigma)
-
 u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
 u.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
 
-u.ars <- apply(mcmapply(mh,n=1:n,MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
-mh(100,ars=T,parR,Sigma)
+u.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
 fixed <- c(F,F,F,F,T,F) ## corresponding to c(alpha, beta, lambda.0,lambda.1,lambda.2,nu)
 init <- c(pars$parR,pars$parGauss$lambda,pars$parGauss$lambda.t,pars$parGauss$nu)
