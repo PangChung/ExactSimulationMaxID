@@ -282,7 +282,7 @@ pG <- function(x,parR,log=FALSE){
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,parR){
         if (xi<=0){return(0)}
-        logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r)),sd=sqrt(parR[3])) )
+        logp <- pnorm(sign(xi)*exp(log(abs(xi))-log(r)),sd=sqrt(parR[3]),lower.tail=FALSE,log.p=TRUE) 
         return( exp( logp + dF(r,parR,log=TRUE) ) )
     }
     val<-integrate(fun,lower=0,upper=Inf,parR=parR,rel.tol=10^(-12),stop.on.error=FALSE)$value

@@ -84,7 +84,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
   y = qG(exp(-z),parR = parR)
   D = nrow(Sigma)
   if(!ars){
-    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.01,N=N)
+    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=1,N=N)
   }else{
     Y = ars.y(y = y,idx=1,parR=parR,Sigma=Sigma)
   }
@@ -93,7 +93,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
     y = qG(exp(-z),parR = parR)
     while(y > Y[j]){
       if(!ars){
-        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=0.01,N=N)
+        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=1,N=N)
       }else{
         Y.new = ars.y(y = y,idx=j,parR=parR,Sigma=Sigma)
       }
