@@ -21,7 +21,8 @@ data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs 
 hist(data.mh[,100])
 pairs <- t(combn(ncol(Sigma),2))
 
-emp.pair(1000,pairs,0.9,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
+## extremal coefficient ##
+emp.pair(2,pairs,z=5,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
 
 
 
