@@ -14,21 +14,22 @@ N = 100   # number of iterations when sample Y
 n = 500
 LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
 parR = c(1,0)
-parGauss = c(1,10) 
+parGauss = c(log(1),10) 
 pars=get.par(c(parR,parGauss),type=1)
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 cutoff <- 3/(7+1) # six order neighbors
 coord = as.matrix(expand.grid(x.coord,y.coord))
-Sigma = exp(-as.matrix(dist(coord))/0.5)
+Sigma = exp(-as.matrix(dist(coord)))
 
 reg=cbind(1,2*pnorm(coord[,1],0.5,0.25)-1)
 reg.t = 0
 
-u.approx <- apply(mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
+data.approx <- mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores)
 
-u.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
+data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
+hist(data.mh[,100])
 
-u.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
+data.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
 fixed <- c(F,F,F,F,T,F) ## corresponding to c(alpha, beta, lambda.0,lambda.1,lambda.2,nu)
 init <- c(pars$parR,pars$parGauss$lambda,pars$parGauss$lambda.t,pars$parGauss$nu)

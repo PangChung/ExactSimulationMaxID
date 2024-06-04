@@ -2,7 +2,7 @@
 # logarithmic target function #
 
 library(ars)
-logends<-function(x,y,parR,type="GS"){
+logends<-function(x,y,parR){
   val <- c()
   alpha = parR[1];beta = parR[2]
   ind <- !is.na(x)
@@ -104,37 +104,37 @@ mcmc.y <- function(y,idx,parR,Sigma,sd=1,N=10^3,type="GS"){
 }
 
 
-#### Algorithm to sample using MH algorithm or adaptive rejection sampling ####
-# mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
-#   counter = 1
-#   z = rexp(1)
-#   y = qG(exp(-z),parR = parR,type=type)
-#   D = nrow(Sigma)
-#   if(!ars){
-#     Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.01,N=N,type = type)
-#   }else{
-#     Y = ars.y(y = y,idx=1,parR=parR,Sigma=Sigma)
-#   }
-#   for(j in 2:D){
-#     z = rexp(1)
-#     y = qG(exp(-z),parR = parR,type = type)
-#     while(y > Y[j]){
-#       if(!ars){
-#         Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=0.01,N=N,type=type)
-#       }else{
-#         Y.new = ars.y(y = y,idx=j,parR=parR,Sigma=Sigma)
-#       }
-#       if(!any(Y.new[1:(j-1)] >= Y[1:(j-1)])){
-#         Y = pmax(Y.new,Y)
-#       }
-#       e = rexp(1)
-#       z = z + e
-#       y = qG(exp(-z)),parR=parR,type = type)
-#       counter = counter + 1
-#     }
-#   }
-#   return(Y)
-# }
+## Algorithm to sample using MH algorithm or adaptive rejection sampling ##
+mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
+  counter = 1
+  z = rexp(1)
+  y = qG(exp(-z),parR = parR,type=type)
+  D = nrow(Sigma)
+  if(!ars){
+    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.01,N=N,type = type)
+  }else{
+    Y = ars.y(y = y,idx=1,parR=parR,Sigma=Sigma)
+  }
+  for(j in 2:D){
+    z = rexp(1)
+    y = qG(exp(-z),parR = parR,type = type)
+    while(y > Y[j]){
+      if(!ars){
+        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=0.01,N=N,type=type)
+      }else{
+        Y.new = ars.y(y = y,idx=j,parR=parR,Sigma=Sigma)
+      }
+      if(!any(Y.new[1:(j-1)] >= Y[1:(j-1)])){
+        Y = pmax(Y.new,Y)
+      }
+      e = rexp(1)
+      z = z + e
+      y = qG(exp(-z),parR=parR,type = type)
+      counter = counter + 1
+    }
+  }
+  return(Y)
+}
 
 mh <- function(n=1,ars=F,parR,Sigma,N=10^3,type="GS"){
     D = nrow(Sigma)
