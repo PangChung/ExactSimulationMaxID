@@ -65,48 +65,48 @@ rF <- function(N, parR){
 
 # covariance function for Gaussian processes
 #parGauss = list(lambda,lambda.t,a,theta,nu,type),reg,reg.t
-rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
-  type = parGauss$type; lambda = parGauss$lambda; lambda.t = parGauss$lambda.t
-  a = parGauss$a; theta = parGauss$theta; nu = parGauss$nu;
-  if(type==1){
-    rho.temp = h^2/lambda^2
-    rho.r = nu*exp(-sqrt(rho.temp))
-    if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
-    else{return(rho.r)}
-  }
-  if(type==2){
-    if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
-    rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2) - sqrt(2*h^2/(exp(2*lambda.hat[1])+exp(2*lambda.hat[2])))
-    rho.r = exp(rho.temp)
-    if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
-    else{return(rho.r)}
-  }
-  if(type==3){
-    U.inv = matrix(c(cos(theta),sin(theta),-sin(theta),cos(theta)),ncol=2,byrow=T)
-    A.inv =t(U.inv)%*%diag(c(1,1/a))%*%U.inv/(lambda^2)
-    Q = t(h)%*%A.inv%*%h
-    rho.r = exp(-sqrt(Q))
-    if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
-    else{return(rho.r)}
-  }
-  if(type==4){
-    if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
-    rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2) - sqrt( 2*h^2/(exp(2*lambda.hat[1])+exp(2*lambda.hat[2])))*((1+r)^nu)
-    rho.r = exp(rho.temp)
-    if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))
-    }else{return(rho.r)}
-  }
-  if(type==5){
-    if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
-    U.inv = matrix(c(cos(theta),sin(theta),-sin(theta),cos(theta)),ncol=2,byrow=T)
-    A.inv =2*t(U.inv)%*%diag(c(1,1/a))%*%U.inv/(exp(2*lambda[1])+exp(2*lambda[2]))*(1+r)^nu
-    Q = t(h)%*%A.inv%*%h
-    rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2)-sqrt(Q)
-    rho.r = exp(rho.temp)
-    if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
-    else{return(rho.r)}
-  }
-}
+# rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
+#   type = parGauss$type; lambda = parGauss$lambda; lambda.t = parGauss$lambda.t
+#   a = parGauss$a; theta = parGauss$theta; nu = parGauss$nu;
+#   if(type==1){
+#     rho.temp = h^2/lambda^2
+#     rho.r = nu*exp(-sqrt(rho.temp))
+#     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
+#     else{return(rho.r)}
+#   }
+#   if(type==2){
+#     if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
+#     rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2) - sqrt(2*h^2/(exp(2*lambda.hat[1])+exp(2*lambda.hat[2])))
+#     rho.r = exp(rho.temp)
+#     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
+#     else{return(rho.r)}
+#   }
+#   if(type==3){
+#     U.inv = matrix(c(cos(theta),sin(theta),-sin(theta),cos(theta)),ncol=2,byrow=T)
+#     A.inv =t(U.inv)%*%diag(c(1,1/a))%*%U.inv/(lambda^2)
+#     Q = t(h)%*%A.inv%*%h
+#     rho.r = exp(-sqrt(Q))
+#     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
+#     else{return(rho.r)}
+#   }
+#   if(type==4){
+#     if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
+#     rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2) - sqrt( 2*h^2/(exp(2*lambda.hat[1])+exp(2*lambda.hat[2])))*((1+r)^nu)
+#     rho.r = exp(rho.temp)
+#     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))
+#     }else{return(rho.r)}
+#   }
+#   if(type==5){
+#     if(is.null(reg.t)) {lambda.hat = reg %*%  lambda}else{lambda.hat = reg %*%  lambda + c(reg.t %*% lambda.t)}
+#     U.inv = matrix(c(cos(theta),sin(theta),-sin(theta),cos(theta)),ncol=2,byrow=T)
+#     A.inv =2*t(U.inv)%*%diag(c(1,1/a))%*%U.inv/(exp(2*lambda[1])+exp(2*lambda[2]))*(1+r)^nu
+#     Q = t(h)%*%A.inv%*%h
+#     rho.temp = sum(lambda.hat)-log((exp(2*lambda.hat[1])+exp(2*lambda.hat[2]))/2)-sqrt(Q)
+#     rho.r = exp(rho.temp)
+#     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
+#     else{return(rho.r)}
+#   }
+# }
 
 
 #################################################################################################################################################
@@ -114,18 +114,16 @@ rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
 #################################################################################################################################################
 
 #density function of the point process (also -V12)
-mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
+mV12 <- function(x,parR,rho,log=FALSE){
   if(!is.matrix(x)){
     x <- matrix(x,nrow=1)
   } # take matrix as argument
   dGi <- function(xi){
-    fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
-      rho <- mapply(rho.func,r=r,
-                    MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=F),SIMPLIFY = T)
+    fun <- function(r){
       v <- exp( -log(2*pi)-0.5*log((1-rho^2)*parR[3])-((sign(xi[1])*exp(log(abs(xi[1]))-log(r)))^2-2*rho*(sign(xi[1])*exp(log(abs(xi[1]))-log(r)))*(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))+(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))^2)/(2*(1-rho^2)*parR[3])-2*log(r)+dF(r,parR,log=TRUE) ) 
       return(v)
     }
-    val <- integrate(fun,lower=0,upper=Inf,h=h,reg.t=reg.t,reg=reg,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   I <- apply(is.na(x),1,sum)==0
@@ -140,7 +138,7 @@ mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
 }
 
 #Partial derivatives of -V with respect to the k=1,2 element
-mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
+mVk <- function(x,k,parR,rho,log=FALSE){
   if(!is.list(x)){
     if(!is.matrix(x)){
       x <- matrix(x,nrow=1)
@@ -151,22 +149,18 @@ mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
   if(!is.list(k)){
     k <- as.list(k)
   }
-  
   g <- function(xi,ki){
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
-    fun <- function(r,h,parR,parGauss,reg,reg.t){
-      rho <- mapply(rho.func,r=r,
-                    MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=F),SIMPLIFY = T)
+    fun <- function(r){
       return( exp( pnorm(sign(xi[-ki]-rho*xi[ki])*exp(log(abs(xi[-ki]-rho*xi[ki]))-log(r)),mean=0,sd=sqrt((1-rho^2)*parR[3]),log.p=TRUE) + dnorm(sign(xi[ki])*exp(log(abs(xi[ki]))-log(r)),sd=sqrt(parR[3]),log=TRUE)-log(r) + dF(r,parR,log=TRUE) ) )
     }
-    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
   I <- mapply(function(x) sum(is.na(x))==0,x)
   val[I] <- mapply(g,xi=x[I],ki=k)
   val[!I] <- NA
-  
   if(log){
     return( log(val) )	
   } else{
@@ -175,34 +169,29 @@ mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
 }
 
 # V (integral of point process density over outer region)
-V <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
+V <- function(x,parR,cor.mat,log=FALSE,type="GS"){
   if(!is.list(x)){
     if(!is.matrix(x)){
       x <- matrix(x,nrow=1)
     }
     x <- as.list(data.frame(t(x)))
   }
-  
   g <- function(xi){
     if (any(xi<=0)){return(Inf)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
-    fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
+    fun <- function(r){
       xi.list <- rep(list(xi),length(r))
       r.list <- as.list(r)
-      sigma.list <- mapply(rho.func,r=r,
-                           MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=T),SIMPLIFY = F)
-      
-      logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma*parR[3])[1]) },xi=xi.list,r=r.list,sigma=sigma.list),0) )
-      return( exp( logpmv + dF_GS(r,parR,log=TRUE) ) )
+      logpmv <- log( pmax(1-mapply(function(xi,r){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=cor.mat*parR[3])[1]) },xi=xi.list,r=r.list),0))
+      return( exp( logpmv + dF(r,parR,log=TRUE) ))
     }
-    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
   I <- mapply(function(x) sum(is.na(x))==0,x)
   val[I] <- mapply(g,xi=x[I])
   val[!I] <- NA
-  
   if(log){
     return( log(val) )	
   } else{
@@ -212,7 +201,7 @@ V <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
 
 
 # Multivariate exponent function V (integral of point process density over outer region)
-V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
+V.dimD <- function(x,parR,cor.mat,log=FALSE){
   D = 2;
   if(is.matrix(h)){D=ncol(h)}
   if(!is.list(x)){
@@ -224,42 +213,26 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
   g <- function(xi){
     if (any(xi<=0)){return(Inf)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
-    fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
+    fun <- function(r){
       xi.list <- rep(list(xi),length(r))
       r.list <- as.list(r)
-      corr<-function(r){
-        if(is.matrix(h)){
-          D = ncol(h);
-          pairs<-as.data.frame(combn(D,2))
-          reg.list = sapply(as.list(pairs),function(x){return(reg[x,])},simplify = F)
-          h.list = h[t(pairs)] 
-          cor.val <- diag(1,D)
-          cor.val[t(pairs)]<-cor.val[t(pairs[2:1,])] <-mapply(rho.func,h=h.list,reg=reg.list,MoreArgs = list(parGauss=parGauss,r=r,reg.t=reg.t,mat=F),SIMPLIFY = T)
-          return(cor.val)
-        }else{
-          return(rho.func(h=h,r=r,parGauss = parGauss,reg = reg,reg.t=reg.t,mat = T))
-        }
-      }
-      sigma.list <- mapply(corr,r=r,SIMPLIFY = F)
       temp = function(xi,r,sigma){ 
         oldSeed <- get(".Random.seed", mode="numeric", envir=globalenv())
         set.seed(19873436)
-        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma*parR[3])[1]
+        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=cor.mat*parR[3])[1]
         assign(".Random.seed", oldSeed, envir=globalenv())
         return(res) 
       }
-
       logpmv <- log( pmax(1-mapply(temp,xi=xi.list,r=r.list,sigma=sigma.list),0) )
-      return( exp( logpmv + dF_GS(r,parR,log=TRUE) ) )
+      return( exp( logpmv + dF(r,parR,log=TRUE)))
     }
-    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
   I <- mapply(function(x) sum(is.na(x))==0,x)
   val[I] <- mapply(g,xi=x[I])
   val[!I] <- NA
-  
   if(log){
     return( log(val) )	
   } else{
@@ -268,9 +241,9 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
 }
 
 # Multivariate level-dependent extremal coefficient: take unit Frechet scale
-Theta.dimD <- function(z,h,parR,parGauss,reg=NULL,reg.t=NULL){
+Theta.dimD <- function(z,parR,cor.mat){
   z.RW <- qG(exp(-1/z),parR=parR,log=FALSE)
-  return( z*V.dimD(z.RW,h=h,parR=parR,parGauss=parGauss,reg=reg,reg.t = reg.t,log=FALSE) )
+  return( z*V.dimD(z.RW,parR=parR,cor.mat,log=FALSE) )
 } 
 
 #################################################################################################################################################
@@ -338,84 +311,24 @@ qG <- function(p,parR,log=FALSE){
 ### spatial simulations of max-id model (multivariate based on a stable correlation function, using coordinates of stations) 
 ##################################################################################################################################
 # if type=1,2,4 then coord should be the distance matrix, otherwise its the coordinates
-rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, ncores=1){
-  D <- nrow(coord)
-  Z <- matrix(nrow=n,ncol=D)
-  pairs <- combn(1:D,2)
-  Sigma <- diag(1,D)
-  if(!is.null(reg.t)){if(!is.matrix(reg.t)){reg.t=matrix(reg.t,ncol=length(reg.t))}}
-  if(is.null(parGauss$nu)){
-    fun <- function(pair,t=NULL){
-      if(parGauss$type %in% c(1,2,4)){
-        h = coord[pair[1],pair[2]]
-      }else{h = abs(coord[pair[1],]-coord[pair[2],])}
-      reg.new=NULL;reg.t.new=NULL
-      if(!is.null(reg)){reg.new=reg[pair,]}
-      if(!is.null(reg.t)){reg.t.new=reg.t[t,]}
-      rho <- rho.func(h=h,r=NULL,parGauss =parGauss,reg=reg.new,reg.t=reg.t.new,mat=F)
-    }
-    if(is.null(reg.t)){
-      Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),mc.cores = ncores)
-      Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
-      Sigma = Sigma*parR[3]
-      A <- t(chol(Sigma)) }
+rmaxidspat <- function(n,parR, cor.mat, N=1000, ncores=1){
+    D <- nrow(coord)
+    Z <- matrix(nrow=n,ncol=D)
+    pairs <- combn(1:D,2)
+    Sigma = cor.mat*parR[3]
+    A <- t(chol(Sigma))
     for (k in 1:n){
-      if(!is.null(reg.t)){
-        Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),MoreArgs = list(t=k),mc.cores = ncores)
-        Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
-        Sigma = Sigma*parR[3]
-        A <- t(chol(Sigma)) 
-      }
       R <- rF(N,parR,type=type)
       Z[k,] <- apply(R*t(A%*%matrix(rnorm(D*N),ncol=N,nrow=D)),2,max)
     }
     return(Z)
-  } else{	
-    for (k in 1:n){
-      R <- rF(N,parR,type=type)
-      tmp <- function(r,t=k){
-        fun <- function(pair){
-          if(parGauss$type %in% c(1,2,4)){
-            h = coord[pair[1],pair[2]]
-          }else{h = abs(coord[pair[1],]-coord[pair[2],])}
-          if(!is.null(reg)){reg.new=reg[pair,]}else{reg.new=NULL}
-          if(!is.null(reg.t)){reg.t.new=reg.t[t,]}else{reg.t.new=NULL}
-          rho <- rho.func(h=h,r=r,parGauss=parGauss,reg=reg.new,reg.t=reg.t.new,mat=F)
-        }
-        Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),mc.cores = ncores)
-        Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
-        Sigma = Sigma*parR[3]
-        A <- t(chol(Sigma))
-        return( r*t(A%*%matrix(rnorm(D),nrow=D,ncol=1)) )
-      }
-      Z[k,] <- apply(matrix(unlist(mclapply(R,tmp,mc.cores=ncores)),nrow=D,ncol=N),1,max)
-    }
-    return(Z)
-  }
 }
 
-# separate the parameters into two parts.
-# including one spatial covariate and one temporal covariate
-get.par <- function(par,type=4,mtype="GS"){
-  if(mtype=="GS"){
-    parR <- exp(par[1:2])
-  }else{
-    parR <- par[1:4];parR[2:4]<-exp(parR[2:4])
-  }
-  parGauss<-list(type=type,lambda=NULL,lambda.t=NULL,a=NULL,theta=NULL,nu=NULL)
-  if(type==1){parGauss$lambda=exp(par[3]);parGauss$nu=par[4]}
-  if(type==2){parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
-  if(type==3){parGauss$lambda=exp(par[3]);parGauss$a=exp(par[4]);parGauss$theta=par[5]}
-  if(type==4){parGauss$nu=par[6];parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
-  if(type==5){parGauss$a=exp(par[3]);parGauss$theta=par[4];parGauss$nu=par[5];parGauss$lambda=par[6:7];parGauss$lambda.t=par[8]}
-  return(list(parR=parR,parGauss=parGauss))
-} 
-
+## DO NOT USE THIS FUNCTION: Needed to be modifed ##
 #####################################
 ### Pairwise likelihood inference ###
 #####################################
 ### These functions were used for the data application
-
 #pairwise copula likelihood computed in parallel
 pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,coord,doSum=TRUE,print.par.file=NULL,ncores=1){ #negative pairwise log likelihood (for the copula)
   if(parGauss$type==1){

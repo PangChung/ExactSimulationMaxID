@@ -23,12 +23,15 @@ Sigma = exp(-as.matrix(dist(coord))/1)*parR[3]
 reg=cbind(1,2*pnorm(coord[,1],0.5,0.25)-1)
 reg.t = 0
 
-data.approx <- mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores)
+# data.approx <- mcmapply(rmaxidspat,n=rep(1,n),MoreArgs = list(coord=as.matrix(dist(coord)),parR=parR,parGauss = parGauss,reg=NULL,reg.t=NULL),SIMPLIFY = T,mc.cores = ncores)
 
 data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
 hist(data.mh[,100])
+pairs <- t(combn(ncol(Sigma),2))
 
-data.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
+emp.pair(1,pairs,dat0 = data.mh,pars = list(parR = parR,parGauss = parGauss))
+
+# data.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
 fixed <- c(F,F,F,F,T,F) ## corresponding to c(alpha, beta, lambda.0,lambda.1,lambda.2,nu)
 init <- c(pars$parR,pars$parGauss$lambda,pars$parGauss$lambda.t,pars$parGauss$nu)

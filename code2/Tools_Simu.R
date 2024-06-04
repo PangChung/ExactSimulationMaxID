@@ -187,8 +187,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
     return(Y)
 }
 
-
-emp.pair <- function(k,pair,XDAT,pars,reg,reg.t){# index of the pairs
+emp.pair <- function(k,pair,z,XDAT,parR,cor.mat){# index of the pairs
   set.seed(19873436)
   d <- ncol(pair)
   dat0 <- XDAT[,pair[k,]]
@@ -204,12 +203,9 @@ emp.pair <- function(k,pair,XDAT,pars,reg,reg.t){# index of the pairs
   v = rep(NA,length(z))
   v[!A1] <- pmin(d,pmax(1,-z[!A1]*log(p[!A1])))
   sd <- 2*sqrt((1-p)/n*z^2/p)
-  if(d==2){h=Sigma[pair[k,1],pair[k,2]]}else{h=Sigma[pair[k,],pair[k,]]}
-  theta <- Theta.dimD(z=z,h=h,parR = pars$parR,parGauss = pars$parGauss,reg = reg[pair[k,],],reg.t=reg.t)
+  theta <- Theta.dimD(z=z,parR = parR,cor.mat)
   return(cbind(v,sd,theta))
 }
 
-
-message("Input the covariance matrix as Sigma")
 
 
