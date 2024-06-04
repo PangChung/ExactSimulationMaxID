@@ -1,0 +1,12 @@
+#!/bin/bash -l
+#SBATCH -p batch
+#SBATCH -J "Quick_1" 
+#SBATCH --time=120:00:00
+#SBATCH -o ../Err_Out/%j.out
+#SBATCH -e ../Err_Out/%j.err
+#SBATCH -n 1
+#SBATCH -c 20
+module load R/3.5.0 ## loading R module
+echo "index=$1"
+OMP_NUM_THREADS=1 Rscript ~/project/exact_simu_max_id_project/fit_example.R "index=$1"
+####OMP_NUM_THREADS=1 Rscript ~/project/my_code_sh/app.R " gd= FALSE ;cutoff= 10 ;index= 6 ;elmin= 0 ;cv= FALSE "

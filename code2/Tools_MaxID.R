@@ -2,7 +2,7 @@
 ### intensity of the radial variable R, random number generator
 #######################################################################################################
 #Density function (PDF) of the point process of R (GS)
-dF_GS <- function(r,parR,log=FALSE){
+dF <- function(r,parR,log=FALSE){
   alpha <- parR[1]
   beta <- parR[2]
   logval <- c()
@@ -22,7 +22,7 @@ dF_GS <- function(r,parR,log=FALSE){
 }
 
 #the intensity dF integrated over [x,infty) (GS)
-upperF_GS <- function(x,parR,log=FALSE){
+upperF <- function(x,parR,log=FALSE){
   alpha <- parR[1]
   beta <- parR[2]
   logval <- c()
@@ -41,59 +41,16 @@ upperF_GS <- function(x,parR,log=FALSE){
   }
 }
 
-#Density function (PDF) of the point process of R (GL)
-dF_GL <- function(r,parR,log=FALSE){
-  alpha <- parR[1]
-  beta <- parR[2]
-  logval <- c()
-  ind <- !is.na(r)
-  logval[!ind] <- NA
-  logval[ind] <- log(alpha*beta)+(beta-1)*log(abs(r[ind]))-alpha*sign(r[ind])*abs(r[ind])^beta
-  if(log){
-    return( logval )	
-  } else{
-    return( exp(logval) )
-  }
-}
-
-#the intensity dF integrated over [x,infty)
-upperF_GL <- function(x,parR,log=FALSE){
-  alpha <- parR[1]
-  beta <- parR[2]
-  logval <- c()
-  logval[is.na(x)] <- NA
-  ind <- !is.na(x)
-  logval[ind] <- -alpha*sign(x[ind])*abs(x[ind])^beta
-  if(log){
-    return( logval )	
-  } else{
-    return( exp(logval) )
-  }
-}
-
 #inverse function of the intensity dF integrated over [x,infty)
-upperFinv <- function(y,parR,log=FALSE,type="GS"){
-  alpha <- parR[1]
-  beta <- parR[2]
+upperFinv <- function(y,parR,log=FALSE){
   logval <- c()
-  if(type=="GS"){
   for(i in 1:length(y)){
     if(!is.na(y[i]) & y[i]>0){
       fun <- function(x){
         return(log(y[i])-upperF_GS(x=exp(x),parR=parR,log=TRUE))
       }
-      logval[i] <- uniroot(f=fun,interval=c(-3,3),extendInt='yes')$root	
+      logval[i] <- uniroot(f=fun,interval=c(-3,3),extendInt='yes',tol = 10^(-12))$root	
     }
-  }}else{
-    for(i in 1:length(y)){
-      if(!is.na(y[i])){
-        fun <- function(x){
-          return(log(y[i])-upperF_GL(x=x,parR=parR,log=TRUE))
-        }
-        logval[i] <- uniroot(f=fun,interval=c(-3,3),extendInt = "yes")$root
-      }
-    }
-  }
   if(log){
     return( logval )	
   } else{
@@ -102,22 +59,18 @@ upperFinv <- function(y,parR,log=FALSE,type="GS"){
 }
 
 #generate n points from the point process R_1>R_2>R_3>... (in decreasing order) on [eps,infty)
-rF <- function(N, parR,type="GS"){
-  if(type=="GS"){
-  return(sort( upperFinv(y=N*runif(N),parR=parR,log=FALSE,type="GS") ,decreasing = TRUE))
-  }else{
-    return(sort( upperFinv(y=N*runif(N),parR=parR,log=FALSE,type="GL") ,decreasing = TRUE))
-  }
+rF <- function(N, parR){
+  return(sort( upperFinv(y=N*runif(N),parR=parR,log=FALSE) ,decreasing = TRUE))
 }
 
-# dependence function for Gaussian processes
+# covariance function for Gaussian processes
 #parGauss = list(lambda,lambda.t,a,theta,nu,type),reg,reg.t
 rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
   type = parGauss$type; lambda = parGauss$lambda; lambda.t = parGauss$lambda.t
   a = parGauss$a; theta = parGauss$theta; nu = parGauss$nu;
   if(type==1){
     rho.temp = h^2/lambda^2
-    rho.r = exp(-sqrt(rho.temp))
+    rho.r = nu*exp(-sqrt(rho.temp))
     if(mat){return(matrix(c(1,rho.r,rho.r,1),nrow=2,byrow=T))}
     else{return(rho.r)}
   }
@@ -155,22 +108,13 @@ rho.func <- function(h,r=NULL,parGauss,reg=NULL,reg.t=NULL,mat=F){
   }
 }
 
-#parGauss is a list
-# fun2int <- function(r,xi,h,parR,parGauss,reg=NULL,reg.t=NULL){
-#   xi.list <- rep(list(xi),length(r))
-#   r.list <- as.list(r)
-#   sigma.list <- mapply(rho.func,r=r,
-#                        MoreArgs = list(h=h,parGauss=parGauss,reg=reg,reg.t=reg.t,mat=T),SIMPLIFY = F)
-#   logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma)[1])},xi=xi.list,r=r.list,sigma=sigma.list),0) )
-#   return( exp( logpmv + dF(r,parR,log=TRUE) ) )
-# }
 
 #################################################################################################################################################
 ### function V and its derivatives
 #################################################################################################################################################
 
 #density function of the point process (also -V12)
-mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
+mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
   if(!is.matrix(x)){
     x <- matrix(x,nrow=1)
   } # take matrix as argument
@@ -178,15 +122,10 @@ mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
     fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
       rho <- mapply(rho.func,r=r,
                     MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=F),SIMPLIFY = T)
-      if(type=="GS"){
-      v <- exp( -log(2*pi)-0.5*log(1-rho^2)-((sign(xi[1])*exp(log(abs(xi[1]))-log(r)))^2-2*rho*(sign(xi[1])*exp(log(abs(xi[1]))-log(r)))*(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))+(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))^2)/(2*(1-rho^2))-2*log(r)+dF_GS(r,parR,log=TRUE) ) 
-      }else{
-      v <- exp( -log(2*pi)-0.5*log(1-rho^2)-((xi[1]-r)^2-2*rho*(xi[1]-r)*(xi[2]-r)+(xi[2]-r)^2)/(2*(1-rho^2))+dF_GL(r,parR,log=TRUE) ) 
-      }
+      v <- exp( -log(2*pi)-0.5*log((1-rho^2)*parR[3])-((sign(xi[1])*exp(log(abs(xi[1]))-log(r)))^2-2*rho*(sign(xi[1])*exp(log(abs(xi[1]))-log(r)))*(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))+(sign(xi[2])*exp(log(abs(xi[2]))-log(r)))^2)/(2*(1-rho^2)*parR[3])-2*log(r)+dF(r,parR,log=TRUE) ) 
       return(v)
     }
-    if(type=="GS"){low=0}else{low=-Inf}
-    val <- integrate(fun,lower=low,upper=Inf,h=h,reg.t=reg.t,reg=reg,parR=parR,parGauss=parGauss,rel.tol=10^(-4),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,h=h,reg.t=reg.t,reg=reg,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   I <- apply(is.na(x),1,sum)==0
@@ -201,7 +140,7 @@ mV12 <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
 }
 
 #Partial derivatives of -V with respect to the k=1,2 element
-mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
+mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
   if(!is.list(x)){
     if(!is.matrix(x)){
       x <- matrix(x,nrow=1)
@@ -218,14 +157,9 @@ mVk <- function(x,k,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
     fun <- function(r,h,parR,parGauss,reg,reg.t){
       rho <- mapply(rho.func,r=r,
                     MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=F),SIMPLIFY = T)
-      if(type=="GS"){
-      return( exp( pnorm(sign(xi[-ki]-rho*xi[ki])*exp(log(abs(xi[-ki]-rho*xi[ki]))-log(r)),mean=0,sd=sqrt(1-rho^2),log.p=TRUE) + dnorm(sign(xi[ki])*exp(log(abs(xi[ki]))-log(r)),log=TRUE) -log(r) + dF_GS(r,parR,log=TRUE) ) )
-      }else{
-        return( exp( pnorm((xi[-ki]-rho*xi[ki]+(1-rho)*r),mean=0,sd=sqrt(1-rho^2),log.p=TRUE) + dnorm(xi[ki]-r,log=TRUE) + dF_GL(r,parR,log=TRUE) ) )
-      }
+      return( exp( pnorm(sign(xi[-ki]-rho*xi[ki])*exp(log(abs(xi[-ki]-rho*xi[ki]))-log(r)),mean=0,sd=sqrt((1-rho^2)*parR[3]),log.p=TRUE) + dnorm(sign(xi[ki])*exp(log(abs(xi[ki]))-log(r)),sd=sqrt(parR[3]),log=TRUE)-log(r) + dF(r,parR,log=TRUE) ) )
     }
-    if(type=="GS"){low=0}else{low=-Inf}
-    val <- integrate(fun,lower=low,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-8),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
@@ -248,24 +182,20 @@ V <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
     }
     x <- as.list(data.frame(t(x)))
   }
+  
   g <- function(xi){
-    if (any(xi<=0) && type=="GS"){return(Inf)}
+    if (any(xi<=0)){return(Inf)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
       xi.list <- rep(list(xi),length(r))
       r.list <- as.list(r)
       sigma.list <- mapply(rho.func,r=r,
                            MoreArgs = list(parGauss=parGauss,h=h,reg=reg,reg.t=reg.t,mat=T),SIMPLIFY = F)
-      if(type=="GS"){
-      logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma)[1]) },xi=xi.list,r=r.list,sigma=sigma.list),0) )
+      
+      logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma*parR[3])[1]) },xi=xi.list,r=r.list,sigma=sigma.list),0) )
       return( exp( logpmv + dF_GS(r,parR,log=TRUE) ) )
-      }else{
-        logpmv <- log( pmax(1-mapply(function(xi,r,sigma){ return(pmvnorm(upper=xi-r,corr=sigma)[1]) },xi=xi.list,r=r.list,sigma=sigma.list),0) )
-        return( exp( logpmv + dF_GL(r,parR,log=TRUE) ) )
-      }
     }
-    if(type=="GS"){low=0}else{low=-Inf}
-    val <- integrate(fun,lower=low,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-8),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
@@ -282,7 +212,7 @@ V <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
 
 
 # Multivariate exponent function V (integral of point process density over outer region)
-V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
+V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE){
   D = 2;
   if(is.matrix(h)){D=ncol(h)}
   if(!is.list(x)){
@@ -292,7 +222,7 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
     x <- as.list(data.frame(t(x)))
   }
   g <- function(xi){
-    if (any(xi<=0) && type=="GS"){return(Inf)}
+    if (any(xi<=0)){return(Inf)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,h,parR,parGauss,reg=NULL,reg.t=NULL){
       xi.list <- rep(list(xi),length(r))
@@ -314,24 +244,15 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
       temp = function(xi,r,sigma){ 
         oldSeed <- get(".Random.seed", mode="numeric", envir=globalenv())
         set.seed(19873436)
-        if(type=="GS"){
-        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma)[1]
-        }else{
-        res <- pmvnorm(upper=xi-r,corr=sigma)[1]
-        }
+        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=sigma*parR[3])[1]
         assign(".Random.seed", oldSeed, envir=globalenv())
         return(res) 
       }
-      if(type=="GS"){
+
       logpmv <- log( pmax(1-mapply(temp,xi=xi.list,r=r.list,sigma=sigma.list),0) )
       return( exp( logpmv + dF_GS(r,parR,log=TRUE) ) )
-      }else{
-        logpmv <- log( pmax(1-mapply(temp,xi=xi.list,r=r.list,sigma=sigma.list),0) )
-        return( exp( logpmv + dF_GL(r,parR,log=TRUE) ) )
-      }
     }
-    if(type=="GS"){low=0}else{low=-Inf}
-    val <- integrate(fun,lower=low,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-8),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,h=h,reg=reg,reg.t=reg.t,parR=parR,parGauss=parGauss,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   val <- c()
@@ -347,31 +268,24 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
 }
 
 # Multivariate level-dependent extremal coefficient: take unit Frechet scale
-Theta.dimD <- function(z,h,parR,parGauss,reg=NULL,reg.t=NULL,type="GS"){
-  z.RW <- qG(exp(-1/z),parR=parR,log=FALSE,type=type)
-  return( z*V.dimD(z.RW,h=h,parR=parR,parGauss=parGauss,reg=reg,reg.t = reg.t,log=FALSE,type=type) )
+Theta.dimD <- function(z,h,parR,parGauss,reg=NULL,reg.t=NULL){
+  z.RW <- qG(exp(-1/z),parR=parR,log=FALSE)
+  return( z*V.dimD(z.RW,h=h,parR=parR,parGauss=parGauss,reg=reg,reg.t = reg.t,log=FALSE) )
 } 
 
 #################################################################################################################################################
 ### marginal distribution of the max-id model, its density and quantile function: pG, dG, qG
 #################################################################################################################################################
-pG <- function(x,parR,log=FALSE,type="GS"){
+pG <- function(x,parR,log=FALSE){
   g <- function(xi){
-    if (xi<=0 && type=="GS"){return(Inf)}
+    if (xi<=0){return(0)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,parR){
-      if(type=="GS"){
-      if (xi<=0){return(Inf)}
-      logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r))) )
-      return( exp( logp + dF_GS(r,parR,log=TRUE) ) )
-      }else{
-      logp <- log( 1-pnorm(xi-r))+dF_GL(r,parR,log=TRUE)
-      return(exp(logp))
-      }
+        if (xi<=0){return(0)}
+        logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r),sd=sqrt(parR[3]))) )
+        return( exp( logp + dF(r,parR,log=TRUE) ) )
     }
-    if(type=="GS"){low=0}else{low = -Inf}
-    val<-tryCatch({integrate(fun,lower=low,upper=Inf,parR=parR,rel.tol=10^(-8),stop.on.error=FALSE)$value},
-             error = function(e){return(Inf)})
+    val<-integrate(fun,lower=0,upper=Inf,parR=parR,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   logval <- c()
@@ -386,18 +300,13 @@ pG <- function(x,parR,log=FALSE,type="GS"){
   }	
 }
 
-dG <- function(x,parR,log=FALSE,type="GS"){
+dG <- function(x,parR,log=FALSE){
   g <- function(xi){
-    if (xi<=0 && type=="GS"){return(0)}
+    if (xi<=0){return(0)}
     fun <- function(r,parR){
-      if(type=="GS"){
-      return(exp(dnorm(sign(xi)*exp(log(abs(xi))-log(r)),log=TRUE)-log(r)+dF_GS(r,parR,log=TRUE)))
-      }else{
-      return(exp(dnorm(xi-r,log=TRUE)+dF_GL(r,parR,log=TRUE)))
-      }
+      return(exp(dnorm(sign(xi)*exp(log(abs(xi))-log(r)),sd=sqrt(parR[3]),log=TRUE)-log(r)+dF(r,parR,log=TRUE)))
     }
-    if(type=="GS"){low=0}else{low=-Inf}
-    val <- integrate(fun,lower=low,upper=Inf,parR=parR,rel.tol=10^(-8),stop.on.error=FALSE)$value
+    val <- integrate(fun,lower=0,upper=Inf,parR=parR,rel.tol=10^(-12),stop.on.error=FALSE)$value
     return(val)
   }
   I <- !is.na(x) 
@@ -412,21 +321,17 @@ dG <- function(x,parR,log=FALSE,type="GS"){
   }	
 }
 
-qG <- function(p,parR,log=FALSE,type="GS"){
+qG <- function(p,parR,log=FALSE){
   fun <- function(x,p,parR){
-    if(type=="GS"){x=exp(x)}
-    return(pG(x,parR,log=TRUE,type=type)-log(p) )
+    x=exp(x)
+    return(pG(x,parR,log=TRUE)-log(p) )
   }
   I <- !is.na(p) & (p>0) & (p<1)
   logval <- c()
   logval[!is.na(p) & p==0] <- -Inf
   logval[!is.na(p) & p==1] <- Inf
-  logval[I] <- apply(matrix(p[I],ncol=1),1,function(pi) uniroot(fun,interval=c(-3,3),p=pi,parR=parR,extendInt='yes')$root)
-  if(log | type=="GL"){
-    return( logval )
-  } else{
-    return( exp(logval) )
-  }
+  logval[I] <- apply(matrix(p[I],ncol=1),1,function(pi) uniroot(fun,interval=c(-3,3),p=pi,parR=parR,extendInt='yes',tol = 10^(-12))$root)
+  return( exp(logval) )
 }
 
 
@@ -434,7 +339,7 @@ qG <- function(p,parR,log=FALSE,type="GS"){
 ### spatial simulations of max-id model (multivariate based on a stable correlation function, using coordinates of stations) 
 ##################################################################################################################################
 # if type=1,2,4 then coord should be the distance matrix, otherwise its the coordinates
-rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, ncores=1,type="GS"){
+rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, ncores=1){
   D <- nrow(coord)
   Z <- matrix(nrow=n,ncol=D)
   pairs <- combn(1:D,2)
@@ -453,19 +358,17 @@ rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, nco
     if(is.null(reg.t)){
       Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),mc.cores = ncores)
       Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
+      Sigma = Sigma*parR[3]
       A <- t(chol(Sigma)) }
     for (k in 1:n){
       if(!is.null(reg.t)){
         Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),MoreArgs = list(t=k),mc.cores = ncores)
         Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
-        A <- t(chol(Sigma))   
+        Sigma = Sigma*parR[3]
+        A <- t(chol(Sigma)) 
       }
       R <- rF(N,parR,type=type)
-      if(type=="GS"){
       Z[k,] <- apply(R*t(A%*%matrix(rnorm(D*N),ncol=N,nrow=D)),2,max)
-      }else{
-        Z[k,] <- apply(R+t(A%*%matrix(rnorm(D*N),ncol=N,nrow=D)),2,max)
-      }
     }
     return(Z)
   } else{	
@@ -482,12 +385,9 @@ rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, nco
         }
         Sigma[t(pairs)]<-mcmapply(fun, pair=as.list(as.data.frame(pairs)),mc.cores = ncores)
         Sigma[t(pairs)[,2:1]]<-Sigma[t(pairs)]
+        Sigma = Sigma*parR[3]
         A <- t(chol(Sigma))
-        if(type=="GS"){
         return( r*t(A%*%matrix(rnorm(D),nrow=D,ncol=1)) )
-        }else{
-        return( r+t(A%*%matrix(rnorm(D),nrow=D,ncol=1)) )
-        }
       }
       Z[k,] <- apply(matrix(unlist(mclapply(R,tmp,mc.cores=ncores)),nrow=D,ncol=N),1,max)
     }
@@ -497,10 +397,14 @@ rmaxidspat <- function(n, coord, parR, parGauss,reg=NULL,reg.t=NULL, N=1000, nco
 
 # separate the parameters into two parts.
 # including one spatial covariate and one temporal covariate
-get.par <- function(par,type=4){
-  parR <- exp(par[1:2])
+get.par <- function(par,type=4,mtype="GS"){
+  if(mtype=="GS"){
+    parR <- exp(par[1:2])
+  }else{
+    parR <- par[1:4];parR[2:4]<-exp(parR[2:4])
+  }
   parGauss<-list(type=type,lambda=NULL,lambda.t=NULL,a=NULL,theta=NULL,nu=NULL)
-  if(type==1){parGauss$lambda=exp(par[3])}
+  if(type==1){parGauss$lambda=exp(par[3]);parGauss$nu=par[4]}
   if(type==2){parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
   if(type==3){parGauss$lambda=exp(par[3]);parGauss$a=exp(par[4]);parGauss$theta=par[5]}
   if(type==4){parGauss$nu=par[6];parGauss$lambda=par[3:4];parGauss$lambda.t=par[5]}
@@ -514,7 +418,7 @@ get.par <- function(par,type=4){
 ### These functions were used for the data application
 
 #pairwise copula likelihood computed in parallel
-pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,coord,doSum=TRUE,print.par.file=NULL,ncores=1,mtype="GS"){ #negative pairwise log likelihood (for the copula)
+pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,coord,doSum=TRUE,print.par.file=NULL,ncores=1){ #negative pairwise log likelihood (for the copula)
   if(parGauss$type==1){
     if (parR[1]<=0  |parR[1]>10 |parR[2]<0 | parR[2]>20 | parGauss$lambda<=0){return(Inf)} 
   }
@@ -535,7 +439,7 @@ pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,co
     A0 <- !is.na(datU[,k])
     res <- rep(NA,nrow(datU))
     if(sum(A0)==0){return(res)}
-    res[A0] <- qG(datU[A0,k],parR,type = mtype)
+    res[A0] <- qG(datU[A0,k],parR)
     return(res)
   }
   contrib.pair <- function(k){ #k is index of pair
@@ -549,12 +453,12 @@ pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,co
       h = coord[new.pair[k,1],new.pair[k,2]]
     }else{h <- abs(coord[new.pair[k,1],]-coord[new.pair[k,2],])}
     if(is.null(reg.t)){
-      v[A0] <- V(XDAT[A0,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,type = mtype)-log( mVk(XDAT[A0,new.pair[k,]],k=rep(1,n0),h=h,parR,parGauss,reg=reg.new,type = mtype)*mVk(XDAT[A0,new.pair[k,]],k=rep(2,n0),h=h,parR,parGauss,reg=reg.new,type = mtype) + mV12(XDAT[A0,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,type = mtype) ) + apply(apply(XDAT[A0,new.pair[k,]],c(1,2),dG,parR=parR,log=TRUE,type = mtype),1,sum) #EMERIC: I think this is OK (when missing values I remove the pair from the pairwise likelihood)
+      v[A0] <- V(XDAT[A0,new.pair[k,]],h=h,parR,parGauss,reg=reg.new)-log( mVk(XDAT[A0,new.pair[k,]],k=rep(1,n0),h=h,parR,parGauss,reg=reg.new)*mVk(XDAT[A0,new.pair[k,]],k=rep(2,n0),h=h,parR,parGauss,reg=reg.new) + mV12(XDAT[A0,new.pair[k,]],h=h,parR,parGauss,reg=reg.new) ) + apply(apply(XDAT[A0,new.pair[k,]],c(1,2),dG,parR=parR,log=TRUE),1,sum) #EMERIC: I think this is OK (when missing values I remove the pair from the pairwise likelihood)
     }else{
       t = which(A0==TRUE)
         fun <- function(i){
-          V(XDAT[i,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,],type = mtype)-log( mVk(XDAT[i,new.pair[k,]],k=1,h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,],type = mtype)*mVk(XDAT[i,new.pair[k,]],k=2,h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,],type = mtype) + mV12(XDAT[i,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,],type = mtype)) + sum(dG(XDAT[i,new.pair[k,]],parR=parR,log=TRUE,type = mtype))#EMERIC: I think this is OK (when missing values I remove the pair from the pairwise likelihood)
-          }
+          V(XDAT[i,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,])-log( mVk(XDAT[i,new.pair[k,]],k=1,h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,])*mVk(XDAT[i,new.pair[k,]],k=2,h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,]) + mV12(XDAT[i,new.pair[k,]],h=h,parR,parGauss,reg=reg.new,reg.t=reg.t[i,])) + sum(dG(XDAT[i,new.pair[k,]],parR=parR,log=TRUE))#EMERIC: I think this is OK (when missing values I remove the pair from the pairwise likelihood)
+        }
     v[A0] <- mapply(fun,t,SIMPLIFY = T)
     return(v)
   }}
@@ -578,7 +482,7 @@ pw.nllik.parallel <- function(parR,parGauss,datU,new.pair,reg=NULL,reg.t=NULL,co
 }
 
 #fit the copula model using pairwise likelihood in parallel
-fit.pw.parallel <- function(init,datU,coord,reg=NULL,reg.t=NULL,ptype=4,mtype="GS",cutoff=Inf,proppairs=1,fixed=rep(FALSE,3),optim=TRUE,gd=F,hessian=TRUE,sandwich=TRUE,eps=10^(-2),print.par.file=NULL,ncores=1,fit.save=FALSE,fit.load=FALSE,fit.file=NULL,maxit=300,...){ #fit max-id copula model by negative pairwise log likelihood
+fit.pw.parallel <- function(init,datU,coord,reg=NULL,reg.t=NULL,ptype=4,cutoff=Inf,proppairs=1,fixed=rep(FALSE,3),optim=TRUE,gd=F,hessian=TRUE,sandwich=TRUE,eps=10^(-2),print.par.file=NULL,ncores=1,fit.save=FALSE,fit.load=FALSE,fit.file=NULL,maxit=300,...){ #fit max-id copula model by negative pairwise log likelihood
   parGauss = list(lambda=NULL,lambda.t=NULL,a=NULL,theta=NULL,nu=NULL,type=ptype)
   #pairs and corresponding rho: put everything in a matrix to which I will apply the likelihood of bivariate data
   D <- nrow(coord)
@@ -597,7 +501,7 @@ fit.pw.parallel <- function(init,datU,coord,reg=NULL,reg.t=NULL,ptype=4,mtype="G
       par2[which(!fixed)] <- par
       par2.list <- get.par(par2,ptype)
       if(is.null(reg.t)){reg.t2=NULL}else{reg.t2=reg.t[1:index,]}
-      val <- pw.nllik.parallel(par2.list$parR,par2.list$parGauss,datU[1:index,],new.pair=pair2,reg=reg,reg.t=reg.t2,coord,doSum=TRUE,print.par.file=print.par.file,ncores=ncores,mtype = mtype)
+      val <- pw.nllik.parallel(par2.list$parR,par2.list$parGauss,datU[1:index,],new.pair=pair2,reg=reg,reg.t=reg.t2,coord,doSum=TRUE,print.par.file=print.par.file,ncores=ncores)
       return(val)
     }
     init2 <- init[which(!fixed)]
