@@ -182,7 +182,7 @@ V <- function(x,parR,cor.mat,log=FALSE,type="GS"){
     fun <- function(r){
       xi.list <- rep(list(xi),length(r))
       r.list <- as.list(r)
-      logpmv <- log( pmax(1-mapply(function(xi,r){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=cor.mat*parR[3])[1]) },xi=xi.list,r=r.list),0))
+      logpmv <- log( pmax(1-mapply(function(xi,r){ return(pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),sigma=cor.mat*parR[3])[1]) },xi=xi.list,r=r.list),0))
       return( exp( logpmv + dF(r,parR,log=TRUE) ))
     }
     val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value
@@ -203,7 +203,7 @@ V <- function(x,parR,cor.mat,log=FALSE,type="GS"){
 # Multivariate exponent function V (integral of point process density over outer region)
 V.dimD <- function(x,parR,cor.mat,log=FALSE){
   D = 2;
-  if(is.matrix(h)){D=ncol(h)}
+  if(is.matrix(cor.mat)){D=ncol(cor.mat)}
   if(!is.list(x)){
     if(!is.matrix(x)){
       x <- matrix(x,nrow=length(x),ncol=D)
@@ -216,14 +216,14 @@ V.dimD <- function(x,parR,cor.mat,log=FALSE){
     fun <- function(r){
       xi.list <- rep(list(xi),length(r))
       r.list <- as.list(r)
-      temp = function(xi,r,sigma){ 
+      temp = function(xi,r){ 
         oldSeed <- get(".Random.seed", mode="numeric", envir=globalenv())
         set.seed(19873436)
-        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),corr=cor.mat*parR[3])[1]
+        res <- pmvnorm(upper=sign(xi)*exp(log(abs(xi))-log(r)),sigma=cor.mat*parR[3])[1]
         assign(".Random.seed", oldSeed, envir=globalenv())
         return(res) 
       }
-      logpmv <- log( pmax(1-mapply(temp,xi=xi.list,r=r.list,sigma=sigma.list),0) )
+      logpmv <- log( pmax(1-mapply(temp,xi=xi.list,r=r.list),0) )
       return( exp( logpmv + dF(r,parR,log=TRUE)))
     }
     val <- integrate(fun,lower=0,upper=Inf,rel.tol=10^(-12),stop.on.error=FALSE)$value

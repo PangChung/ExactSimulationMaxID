@@ -203,7 +203,7 @@ emp.pair <- function(k,pair,z,XDAT,parR,cor.mat){# index of the pairs
   v = rep(NA,length(z))
   v[!A1] <- pmin(d,pmax(1,-z[!A1]*log(p[!A1])))
   sd <- 2*sqrt((1-p)/n*z^2/p)
-  theta <- Theta.dimD(z=z,parR = parR,cor.mat)
+  theta <- Theta.dimD(z=z,parR = parR,cor.mat[pair[k,],pair[k,]])
   return(cbind(v,sd,theta))
 }
 

@@ -10,13 +10,10 @@ library(evd)
 ncores=detectCores()
 d = 10
 D = d^2 # number of sites in the space
-N = 100   # number of iterations when sample Y 
 n = 500
-LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
 parR = c(1,0,10)
 parGauss = c(1,10) 
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
-cutoff <- 3/(7+1) # six order neighbors
 coord = as.matrix(expand.grid(x.coord,y.coord))
 Sigma = exp(-as.matrix(dist(coord))/1)*parR[3]
 
@@ -29,7 +26,7 @@ data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs 
 hist(data.mh[,100])
 pairs <- t(combn(ncol(Sigma),2))
 
-emp.pair(1,pairs,dat0 = data.mh,pars = list(parR = parR,parGauss = parGauss))
+emp.pair(1000,pairs,0.9,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
 
 # data.ars <- apply(mcmapply(mh,n=rep(1,n),MoreArgs = list(ars=T,parR=parR,Sigma=Sigma),SIMPLIFY = T,mc.cores = ncores),1,pG,parR=parR)
 
