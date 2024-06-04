@@ -278,11 +278,11 @@ Theta.dimD <- function(z,h,parR,parGauss,reg=NULL,reg.t=NULL){
 #################################################################################################################################################
 pG <- function(x,parR,log=FALSE){
   g <- function(xi){
-    if (xi<=0){return(0)}
+    if (xi<=0){return(Inf)}
     #function of r to be integrated (needs to be defined for different values of r (= r is a vector))
     fun <- function(r,parR){
         if (xi<=0){return(0)}
-        logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r),sd=sqrt(parR[3]))) )
+        logp <- log( 1-pnorm(sign(xi)*exp(log(abs(xi))-log(r)),sd=sqrt(parR[3])) )
         return( exp( logp + dF(r,parR,log=TRUE) ) )
     }
     val<-integrate(fun,lower=0,upper=Inf,parR=parR,rel.tol=10^(-12),stop.on.error=FALSE)$value
@@ -292,7 +292,6 @@ pG <- function(x,parR,log=FALSE){
   I <- !is.na(x) 
   logval[I] <- -apply(matrix(x[I],ncol=1),1,g)
   logval[!I] <- NA
-  
   if(log){
     return( logval )	
   } else{
