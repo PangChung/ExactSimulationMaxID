@@ -50,7 +50,7 @@ upperFinv <- function(y,parR,log=FALSE){
         return(log(y[i])-upperF_GS(x=exp(x),parR=parR,log=TRUE))
       }
       logval[i] <- uniroot(f=fun,interval=c(-3,3),extendInt='yes',tol = 10^(-12))$root	
-    }
+    }}
   if(log){
     return( logval )	
   } else{
@@ -777,6 +777,7 @@ fit.extremal.parallel <- function(init,datU,coord,reg=NULL,type=1,cutoff=Inf,pro
     res$counts <- fit$counts
     return(res)
 }
+
 
 
 

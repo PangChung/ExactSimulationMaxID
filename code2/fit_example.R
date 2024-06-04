@@ -2,7 +2,7 @@ args <- commandArgs(trailingOnly=TRUE)
 for(arg in args) {
   eval(parse(text = arg))
 }
-setwd("code/")
+setwd("code2/")
 source("Tools_MaxID.R");source("Tools_Simu.R")
 library(parallel)
 library(mvtnorm)
