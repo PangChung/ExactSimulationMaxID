@@ -305,7 +305,6 @@ V.dimD <- function(x,h,parR,parGauss,reg=NULL,reg.t=NULL,log=FALSE,type="GS"){
         }
       }
       sigma.list <- mapply(corr,r=r,SIMPLIFY = F)
-      browser()
       temp = function(xi,r,sigma){ 
         oldSeed <- get(".Random.seed", mode="numeric", envir=globalenv())
         set.seed(19873436)

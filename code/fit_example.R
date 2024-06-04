@@ -2,7 +2,6 @@ args <- commandArgs(trailingOnly=TRUE)
 for(arg in args) {
   eval(parse(text = arg))
 }
-
 setwd("code/")
 source("Tools_MaxID.R");source("Tools_Simu.R")
 library(parallel)
@@ -44,6 +43,9 @@ fixed <- c(F,F,F,F,T,F) ## corresponding to c(alpha, beta, lambda.0,lambda.1,lam
 init <- c(pars$parR,pars$parGauss$lambda,pars$parGauss$lambda.t,pars$parGauss$nu)
 init[!fixed] = init[!fixed] + runif(sum(!fixed),0.1,0.3)
 init[1:2] <- log(init[1:2])
+
+
+
 
 ### Fit the model. It will take hours. ###
 # message("Fit the model for ARS")
