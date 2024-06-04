@@ -13,7 +13,7 @@ D = d^2 # number of sites in the space
 N = 100   # number of iterations when sample Y 
 n = 500
 LAMBDA.T = TRUE # whether the exponent measure is infinite or not on the whole space
-parR = c(1,0,1)
+parR = c(1,0,10)
 parGauss = c(1,10) 
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 cutoff <- 3/(7+1) # six order neighbors
