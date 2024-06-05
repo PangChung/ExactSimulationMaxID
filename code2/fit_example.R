@@ -12,7 +12,6 @@ d = 10
 D = d^2 # number of sites in the space
 n = 100
 parR = c(1,0.5,10)
-parGauss = c(1,10) 
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 coord = as.matrix(expand.grid(x.coord,y.coord))
 Sigma = exp(-as.matrix(dist(coord))/1)*parR[3]
