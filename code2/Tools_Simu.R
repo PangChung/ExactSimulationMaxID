@@ -187,7 +187,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
 #     return(Y)
 # }
 
-emp.pair <- function(k,pair,z,XDAT,parR,cor.mat){# index of the pairs
+emp.pair <- function(k,pair,z=5,XDAT,parR,cor.mat){# index of the pairs
   set.seed(19873436)
   d <- ncol(pair)
   dat0 <- XDAT[,pair[k,]]

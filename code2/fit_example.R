@@ -10,22 +10,24 @@ library(evd)
 ncores=detectCores()
 d = 10
 D = d^2 # number of sites in the space
-n = 500
-parR = c(1,0,10)
+n = 100
+parR = c(1,0.5,10)
 parGauss = c(1,10) 
 x.coord <-  y.coord <- c(1:d)/(d+1) #grids 
 coord = as.matrix(expand.grid(x.coord,y.coord))
 Sigma = exp(-as.matrix(dist(coord))/1)*parR[3]
 
 data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores,MoreArgs = list(parR=parR,Sigma=Sigma)),1,pG,parR=parR)
-hist(data.mh[,100])
+hist(data.mh)
 pairs <- t(combn(ncol(Sigma),2))
 
 ## extremal coefficient ##
 ## 2 is the index number of the pairs
 ## pairs contains all the pairs
-## z=5 is the level
-emp.pair(2,pairs,z=5,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
+## z=5 (default) is the level
+## -1/log(data.mh) will transform the uniform data data.mh to the unit Frechet scale
+## it produce a vector of length 3, (empirical estimates from the data, the standard deviation of the estimates, the theoretical true value)
+emp.pair(99,pairs,z=5,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
 
 
 
