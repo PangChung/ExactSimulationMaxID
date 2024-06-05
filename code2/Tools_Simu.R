@@ -84,7 +84,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
   y = qG(exp(-z),parR = parR)
   D = nrow(Sigma)
   if(!ars){
-    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=1,N=N)
+    Y = mcmc.y(y = y,idx=1,parR=parR,Sigma=Sigma,sd=0.5,N=N)
   }else{
     Y = ars.y(y = y,idx=1,parR=parR,Sigma=Sigma)
   }
@@ -93,7 +93,7 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
     y = qG(exp(-z),parR = parR)
     while(y > Y[j]){
       if(!ars){
-        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=1,N=N)
+        Y.new = mcmc.y(y = y,idx=j,parR=parR,Sigma=Sigma,sd=0.5,N=N)
       }else{
         Y.new = ars.y(y = y,idx=j,parR=parR,Sigma=Sigma)
       }
@@ -109,83 +109,83 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
   return(Y)
 }
 
-mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
-    D = nrow(Sigma)
-    idx.loc = cbind(1:n,1)
-    idx.loc.sum = lapply(1:D,function(id){which(idx.loc[,2]==id)})
-    z = rexp(n)
-    y = qG(exp(-z),parR = parR)
-    func <- function(idx.j,j){
-        m.idx.j = length(idx.j)
-        if(m.idx.j > 0 & j<=n){
-            if(ars){
-                val = lapply(idx.j,function(i){ars.y(y = y[i],idx=j,parR=parR,Sigma=Sigma)})
-            } else {
-                val = lapply(idx.j,function(i){mcmc.y(y = y[i],idx=j,parR=parR,Sigma=Sigma,sd=1,N=N)})
-            }
-            return(do.call(rbind,val))
-        }
-        return(NULL)
-    }
+# mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
+#     D = nrow(Sigma)
+#     idx.loc = cbind(1:n,1)
+#     idx.loc.sum = lapply(1:D,function(id){which(idx.loc[,2]==id)})
+#     z = rexp(n)
+#     y = qG(exp(-z),parR = parR)
+#     func <- function(idx.j,j){
+#         m.idx.j = length(idx.j)
+#         if(m.idx.j > 0 & j<=n){
+#             if(ars){
+#                 val = lapply(idx.j,function(i){ars.y(y = y[i],idx=j,parR=parR,Sigma=Sigma)})
+#             } else {
+#                 val = lapply(idx.j,function(i){mcmc.y(y = y[i],idx=j,parR=parR,Sigma=Sigma,sd=0.5,N=N)})
+#             }
+#             return(do.call(rbind,val))
+#         }
+#         return(NULL)
+#     }
 
-    func.compare <- function(idx,j){
-        val = !any(Y[idx,1:(j-1)] < Y.temp[idx,1:(j-1)]) 
-        if(val){
-            return(idx)
-        }else{
-            return(NULL)
-        }
-    }
+#     func.compare <- function(idx,j){
+#         val = !any(Y[idx,1:(j-1)] < Y.temp[idx,1:(j-1)]) 
+#         if(val){
+#             return(idx)
+#         }else{
+#             return(NULL)
+#         }
+#     }
     
-    func.pmax <- function(idx){
-        return(pmax(Y[idx,],Y.temp[idx,]))
-    }
+#     func.pmax <- function(idx){
+#         return(pmax(Y[idx,],Y.temp[idx,]))
+#     }
 
-    Y = mapply(func,idx.j=idx.loc.sum,j=1:D,SIMPLIFY=FALSE)
-    Y = do.call(rbind,Y) 
-    idx.loc[,2] = 2
-    idx.loc.sum = lapply(1:D,function(id){which(idx.loc[,2]==id)})
-    idx.new <- idx.pass <-  rep(TRUE,n)
-    idx.finish <- idx.old <- rep(FALSE,n)
-    count = 1
-    while(any(!idx.finish)){
-        if(sum(idx.old)!=0){
-            z[idx.old] = z[idx.old ] + rexp(sum(idx.old))
-            y[idx.old] = qG(exp(-z[idx.old]),parR)
-        }
-        if(sum(idx.new) != 0){
-            z[idx.new] = rexp(sum(idx.new))
-            y[idx.new] = qG(exp(-z[idx.new]),parR)
-        }
-        idx.pass[!idx.finish] <- y[!idx.finish] > Y[idx.loc[!idx.finish,,drop=FALSE]]
-        idx.pass[idx.finish] = FALSE
-        idx.go.ahead = !idx.pass & !idx.finish
-        if(sum(idx.go.ahead) > 0){
-            idx.loc[idx.go.ahead,2] = idx.loc[idx.go.ahead,2] +  1
-            idx.new[idx.go.ahead] = TRUE
-        }
-        if(sum(idx.pass)!=0){
-            idx.new[idx.pass] = FALSE
-            idx.loc.sum.simu = lapply(1:n,function(id){which(idx.loc[idx.pass,2]==id)})
-            Y.temp.0 = mapply(func,idx.j=idx.loc.sum.simu,j=1:n,SIMPLIFY=FALSE)
-            Y.temp = Y
-            idx.temp = which(idx.pass)[unlist(idx.loc.sum.simu)]
-            Y.temp[idx.temp,] = do.call(rbind,Y.temp.0)
-            idx.temp = unlist(mapply(func.compare,idx=which(idx.pass),j=idx.loc[idx.pass,2],SIMPLIFY=FALSE))
-            if(length(idx.temp)!=0){
-                Y[idx.temp,] = do.call(rbind,lapply(idx.temp,func.pmax))
-                idx.loc[idx.temp,2] = idx.loc[idx.temp,2] + 1
-                idx.new[idx.temp] = TRUE
-            }
-        }
-        idx.finish = idx.loc[,2] > D
-        idx.new = idx.new & !idx.finish
-        idx.old = !idx.new & !idx.finish
-        count = count + 1
-        # print(paste0(c(count,sum(idx.finish),n),collapse = "/"))
-    }
-    return(Y)
-}
+#     Y = mapply(func,idx.j=idx.loc.sum,j=1:D,SIMPLIFY=FALSE)
+#     Y = do.call(rbind,Y) 
+#     idx.loc[,2] = 2
+#     idx.loc.sum = lapply(1:D,function(id){which(idx.loc[,2]==id)})
+#     idx.new <- idx.pass <-  rep(TRUE,n)
+#     idx.finish <- idx.old <- rep(FALSE,n)
+#     count = 1
+#     while(any(!idx.finish)){
+#         if(sum(idx.old)!=0){
+#             z[idx.old] = z[idx.old ] + rexp(sum(idx.old))
+#             y[idx.old] = qG(exp(-z[idx.old]),parR)
+#         }
+#         if(sum(idx.new) != 0){
+#             z[idx.new] = rexp(sum(idx.new))
+#             y[idx.new] = qG(exp(-z[idx.new]),parR)
+#         }
+#         idx.pass[!idx.finish] <- y[!idx.finish] > Y[idx.loc[!idx.finish,,drop=FALSE]]
+#         idx.pass[idx.finish] = FALSE
+#         idx.go.ahead = !idx.pass & !idx.finish
+#         if(sum(idx.go.ahead) > 0){
+#             idx.loc[idx.go.ahead,2] = idx.loc[idx.go.ahead,2] +  1
+#             idx.new[idx.go.ahead] = TRUE
+#         }
+#         if(sum(idx.pass)!=0){
+#             idx.new[idx.pass] = FALSE
+#             idx.loc.sum.simu = lapply(1:n,function(id){which(idx.loc[idx.pass,2]==id)})
+#             Y.temp.0 = mapply(func,idx.j=idx.loc.sum.simu,j=1:n,SIMPLIFY=FALSE)
+#             Y.temp = Y
+#             idx.temp = which(idx.pass)[unlist(idx.loc.sum.simu)]
+#             Y.temp[idx.temp,] = do.call(rbind,Y.temp.0)
+#             idx.temp = unlist(mapply(func.compare,idx=which(idx.pass),j=idx.loc[idx.pass,2],SIMPLIFY=FALSE))
+#             if(length(idx.temp)!=0){
+#                 Y[idx.temp,] = do.call(rbind,lapply(idx.temp,func.pmax))
+#                 idx.loc[idx.temp,2] = idx.loc[idx.temp,2] + 1
+#                 idx.new[idx.temp] = TRUE
+#             }
+#         }
+#         idx.finish = idx.loc[,2] > D
+#         idx.new = idx.new & !idx.finish
+#         idx.old = !idx.new & !idx.finish
+#         count = count + 1
+#         # print(paste0(c(count,sum(idx.finish),n),collapse = "/"))
+#     }
+#     return(Y)
+# }
 
 emp.pair <- function(k,pair,z,XDAT,parR,cor.mat){# index of the pairs
   set.seed(19873436)

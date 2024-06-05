@@ -22,6 +22,9 @@ hist(data.mh[,100])
 pairs <- t(combn(ncol(Sigma),2))
 
 ## extremal coefficient ##
+## 2 is the index number of the pairs
+## pairs contains all the pairs
+## z=5 is the level
 emp.pair(2,pairs,z=5,-1/log(data.mh),parR=parR,cor.mat=Sigma/parR[3])
 
 
