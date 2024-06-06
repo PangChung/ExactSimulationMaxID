@@ -187,21 +187,15 @@ mh <- function(n=1,ars=F,parR,Sigma,N=10^3){
 #     return(Y)
 # }
 
-emp.pair <- function(k,pair,z=5,XDAT,parR,cor.mat){# index of the pairs
+emp.pair <- function(k,pair,z=1,XDAT,parR,cor.mat){# index of the pairs
   set.seed(19873436)
   d <- ncol(pair)
   dat0 <- XDAT[,pair[k,]]
-  A0 <- apply(dat0,1,function(x){sum(!is.na(x))==length(x)}) # time without missing value for the pair
-  n0 <- sum(A0)
-  if (n0<30) return(matrix(NA,length(z),ncol=3))
-  dat.max <- apply(dat0[A0,],1,max,na.rm=T)
-  n <- sapply(z,function(x){sum(dat.max<x)},simplify = T)
+  dat.max <- apply(dat0,1,max,na.rm=T)
+  n <- sum(dat.max<z)
   pf<-ecdf(dat.max)
   p <- pf(z)
-  A1 <- (p == 0)
-  p[A1]<-NA
-  v = rep(NA,length(z))
-  v[!A1] <- pmin(d,pmax(1,-z[!A1]*log(p[!A1])))
+  v <- pmin(d,pmax(1,-z*log(p)))
   sd <- 2*sqrt((1-p)/n*z^2/p)
   theta <- Theta.dimD(z=z,parR = parR,cor.mat[pair[k,],pair[k,]])
   return(cbind(v,sd,theta))
