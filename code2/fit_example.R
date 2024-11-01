@@ -17,6 +17,7 @@ coord = as.matrix(expand.grid(x.coord,y.coord))
 Sigma = exp(-as.matrix(dist(coord))/0.5)*parR[3]
 
 data.mh <- apply(mcmapply(mh,n=rep(1,1000),SIMPLIFY = T,mc.cores = ncores, MoreArgs = list(parR=parR,Sigma=Sigma,ars=FALSE)),1,pG,parR=parR)
+
 #hist(data.mh)
 pairs <- t(combn(ncol(Sigma),2))
 dist.vec = as.matrix(dist(coord))[pairs]
