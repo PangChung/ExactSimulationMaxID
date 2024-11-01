@@ -20,7 +20,7 @@ logends<-function(x,y,parR){
 ## the derivative of the logarithmic target function ##
 grad_logends<-function(x,y,parR){
   alpha <- parR[1]
-  beta <- parR[2];nu=par[3]
+  beta <- parR[2];nu=parR[3]
   val <- c()
   val[is.na(x)] <- NA
   ind <- !is.na(x)
