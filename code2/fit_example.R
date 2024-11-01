@@ -16,7 +16,7 @@ x.coord <-  y.coord <- c(1:d)/(d+1) #grids
 coord = as.matrix(expand.grid(x.coord,y.coord))
 Sigma = exp(-as.matrix(dist(coord))/0.5)*parR[3]
 
-data.mh <- apply(mcmapply(mh,n=rep(1,n),SIMPLIFY = T,mc.cores = ncores, MoreArgs = list(parR=parR,Sigma=Sigma,ars=TRUE)),1,pG,parR=parR)
+data.mh <- apply(mcmapply(mh,n=rep(1,1000),SIMPLIFY = T,mc.cores = ncores, MoreArgs = list(parR=parR,Sigma=Sigma,ars=FALSE)),1,pG,parR=parR)
 #hist(data.mh)
 pairs <- t(combn(ncol(Sigma),2))
 dist.vec = as.matrix(dist(coord))[pairs]
@@ -32,7 +32,7 @@ ext.est <- mcmapply(1:nrow(pairs),FUN=emp.pair,mc.cores=ncores,MoreArgs = list(z
 plot(dist.vec,ext.est[1,],pch=20)
 points(dist.vec,ext.est[3,],col=2,pch=20)
 
-hist(data.mh,200)
-x = data.mh[,5]
+hist(data.mh,100)
+x = data.mh
 qqplot(qgev(rank(x)/(length(x)+1),1,1,1),qgev(x,1,1,1))
 abline(0,1)
